@@ -4,6 +4,8 @@ My AI App is a Laravel-based knowledge assistant that lets each authenticated us
 
 The system takes user-provided documents, splits them into chunks, generates embeddings for those chunks, retrieves the most relevant chunks for a question, and then sends that retrieved context to an LLM to produce a grounded answer.
 
+The active AI integration in this project uses `laravel/ai` with Gemini as the configured provider for embeddings and text generation inside the RAG flow.
+
 ## What the system actually does
 
 This project is a basic RAG system with three main layers:
@@ -108,6 +110,7 @@ Ingestion is handled mainly by:
 - `app/Services/RagService.php`
 - `app/Services/TextChunker.php`
 - `app/Services/OpenAIService.php`
+- `Laravel\Ai\Embeddings`
 
 Flow:
 
@@ -115,7 +118,7 @@ Flow:
 2. It validates input and resolves the final title and source info.
 3. `RagService::ingest()` is called.
 4. `TextChunker::split()` breaks the content into overlapping chunks.
-5. `OpenAIService::embeddings()` generates embeddings for all chunks.
+5. `OpenAIService::embeddings()` calls `Laravel\Ai\Embeddings` to generate embeddings through the SDK.
 6. A `knowledge_document` row is created.
 7. Each chunk is stored in `documents` with its embedding and metadata.
 
@@ -135,7 +138,7 @@ Retrieval is handled by:
 Flow:
 
 1. The user sends a question in a conversation.
-2. The system creates an embedding for that question.
+2. The system creates an embedding for that question through `laravel/ai`.
 3. It loads all chunk rows that belong to the current user's knowledge documents.
 4. It computes cosine similarity between the question embedding and each stored chunk embedding.
 5. It sorts matches by similarity score.
@@ -154,13 +157,14 @@ Answer generation is handled by:
 - `app/Http/Controllers/ChatController.php`
 - `app/Services/RagService.php`
 - `app/Services/OpenAIService.php`
+- `Laravel\Ai\agent(...)`
 
 Flow:
 
 1. The question is saved as a user message.
 2. The system loads up to the most recent 8 conversation messages as history.
 3. The top retrieved chunks are formatted into a context block.
-4. That context plus the question and recent history are sent to the LLM.
+4. That context plus the question and recent history are sent to an anonymous `laravel/ai` agent.
 5. The assistant response is saved as a message.
 6. The assistant message stores citations for the matched chunks used as sources.
 7. The conversation title is auto-generated from the first user message.
@@ -169,6 +173,49 @@ The prompt logic explicitly tells the model:
 
 - answer only from supplied knowledge base context
 - say the answer is unavailable if the context is insufficient
+
+## Laravel AI integration
+
+The project includes `laravel/ai` and the live RAG flow now uses it directly.
+
+### Where `laravel/ai` is used
+
+- `app/Services/OpenAIService.php`
+- `config/ai.php`
+
+### What it is doing in this project
+
+`laravel/ai` is currently used for two things:
+
+1. Embeddings generation
+2. LLM text generation for grounded answers
+
+### How it is used
+
+For embeddings:
+
+- `OpenAIService::embeddings()` calls `Laravel\Ai\Embeddings::for(...)->generate(...)`
+- Provider is forced to `Lab::Gemini`
+- The resulting vectors are stored in the `documents.embedding` column
+
+For answer generation:
+
+- `OpenAIService::answerQuestion()` creates an anonymous SDK agent using `Laravel\Ai\agent(...)`
+- Recent conversation history is converted into `Laravel\Ai\Messages\Message` objects
+- The prompt includes the retrieved knowledge context
+- The SDK sends the prompt to Gemini and returns structured usage/meta data
+
+### What `laravel/ai` is not doing yet
+
+- It is not managing the app's own `conversations` or `messages` tables
+- It is not handling retrieval or vector search for this app
+- It is not using SDK conversation persistence or vector stores yet
+
+Those parts still remain in your own application layer:
+
+- `RagService` handles ingestion orchestration and answer orchestration
+- `SimilarityService` handles cosine similarity
+- `Conversation`, `Message`, `KnowledgeDocument`, and `Document` remain your app's own storage model
 
 ## AI provider currently used
 
@@ -179,13 +226,14 @@ The current implementation uses Gemini for:
 
 Configured through:
 
+- `config/ai.php`
 - `config/services.php`
 - `app/Services/OpenAIService.php`
 
 Important note:
 
-- The class is named `OpenAIService`, but the implementation currently calls Gemini API endpoints.
-- So the active provider for this system's RAG flow is Gemini, not OpenAI.
+- The class is still named `OpenAIService`, but it now uses `laravel/ai` with Gemini under the hood.
+- So the active provider for this system's RAG flow is Gemini, routed through the Laravel AI SDK.
 
 Relevant environment variables:
 
@@ -197,6 +245,15 @@ GEMINI_EMBEDDING_MODEL=gemini-embedding-001
 GEMINI_EMBEDDING_VERSION=v1beta
 GEMINI_TIMEOUT=60
 ```
+
+Related SDK config:
+
+- `config/ai.php` sets:
+  - `default => gemini`
+  - `default_for_embeddings => gemini`
+- `config/ai.php` also maps:
+  - `providers.gemini.models.text.default`
+  - `providers.gemini.models.embeddings.default`
 
 ## User scoping and ownership
 
@@ -289,5 +346,6 @@ This starts the Laravel server, queue listener, log tailing, and Vite dev server
 
 - Only text-like files are supported for ingestion.
 - Retrieval scans stored chunk embeddings in the application layer, which is simple but not optimized for large-scale vector search.
-- The service name `OpenAIService` does not match the actual provider being used.
+- The service name `OpenAIService` does not match its current role as a Laravel AI SDK wrapper for Gemini.
+- `laravel/ai` is only used for embeddings and answer generation right now, not for SDK-managed conversation memory or vector stores.
 - The README reflects the current code implementation, not a generalized future architecture.

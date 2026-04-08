@@ -13,11 +13,11 @@ return [
     |
     */
 
-    'default' => 'openai',
+    'default' => 'gemini',
     'default_for_images' => 'gemini',
     'default_for_audio' => 'openai',
     'default_for_transcription' => 'openai',
-    'default_for_embeddings' => 'openai',
+    'default_for_embeddings' => 'gemini',
     'default_for_reranking' => 'cohere',
 
     /*
@@ -83,6 +83,14 @@ return [
         'gemini' => [
             'driver' => 'gemini',
             'key' => env('GEMINI_API_KEY'),
+            'models' => [
+                'text' => [
+                    'default' => env('GEMINI_CHAT_MODEL', 'gemini-2.5-flash-lite'),
+                ],
+                'embeddings' => [
+                    'default' => env('GEMINI_EMBEDDING_MODEL', 'gemini-embedding-001'),
+                ],
+            ],
         ],
 
         'groq' => [
