@@ -1165,6 +1165,14 @@ textarea.form-input { resize: vertical; }
 }
 .btn-outline-danger:hover { background: var(--danger-light); border-color: var(--danger); }
 
+.btn-outline-primary {
+    background: transparent;
+    border: 1px solid rgba(59,130,246,0.35);
+    color: var(--primary);
+}
+.btn-outline-primary:hover { background: var(--primary-light); border-color: var(--primary); }
+
+
 .btn:disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
 
 /* ─────────────────────────────────────────
