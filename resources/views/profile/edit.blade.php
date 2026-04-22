@@ -63,6 +63,80 @@
         </div>
     </div>
 
+    {{-- telegram chat support --}}
+    <div class="admin-card">
+        <div class="card-header">
+            <h2 class="card-title">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="18" height="18">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 9.75a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 0 1 .778-.332 48.294 48.294 0 0 0 5.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+                </svg>
+                Telegram Chat Support
+            </h2>
+        </div>
+        <div class="card-body">
+            @if (session('status') === 'telegram-updated')
+                <div class="alert alert-success">Telegram records updated successfully.</div>
+            @endif
+
+            <form method="POST" action="{{ route('telegram.update') }}">
+                @csrf
+                @method('patch')
+
+                <div class="form-group">
+                    <label class="form-label" for="telegram_chat_id">Telegram Connection</label>
+                    
+                    <div style="display: flex; gap: 12px; flex-direction: column;">
+                        {{-- Method 1: Automated Link --}}
+                        <div class="link-option-box" style="padding: 16px; border: 1px dashed var(--admin-border); border-radius: 8px; background: var(--admin-bg-light);">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <h4 style="margin: 0; font-size: 14px; font-weight: 600;">Automated Link (Recommended)</h4>
+                                    <p style="margin: 4px 0 0 0; font-size: 12px; color: var(--text-muted);">Click the button below to open Telegram and link your account automatically.</p>
+                                </div>
+                                <button type="button" onclick="document.getElementById('telegram-link-form').submit();" class="btn btn-ghost" style="color: #0088cc; border-color: #0088cc;">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                                    Link Account
+                                </button>
+                            </div>
+                        </div>
+
+                        {{-- Method 2: Manual Input --}}
+                        <div>
+                            <p style="margin: 0 0 8px 0; font-size: 13px; font-weight: 500;">Or enter Chat ID manually</p>
+                            <input id="telegram_chat_id" class="form-input {{ $errors->has('telegram_chat_id') ? 'input-error' : '' }}"
+                                   name="telegram_chat_id" type="text" value="{{ old('telegram_chat_id', $user->telegram_chat_id) }}" placeholder="Enter Telegram Chat ID">
+                            @error('telegram_chat_id')
+                                <p class="field-error">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group form-group-full">
+                        <input type="hidden" name="telegram_enabled" value="0">
+                        <label class="setting-toggle">
+                            <input type="checkbox" name="telegram_enabled" value="1"
+                                   {{ old('telegram_enabled', $user->telegram_enabled) ? 'checked' : '' }}>
+                            <span class="setting-toggle-ui">
+                                <span class="setting-toggle-copy">
+                                    <strong>Telegram Enabled</strong>
+                                    <span>Enable this to allow the user to chat with their knowledge via Telegram bot. <a href="{{ config('services.telegram.bot_url') }}" class="text-blue" target="_blank">{{ config('services.telegram.bot_url') }}</a></span>
+                                </span>
+                            </span>
+                        </label>
+
+                        @error('telegram_enabled')
+                            <p class="field-error">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary mt-2">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     {{-- Change password --}}
     <div class="admin-card">
         <div class="card-header">
@@ -169,6 +243,10 @@
 </div>
 
 @endsection
+
+<form id="telegram-link-form" action="{{ route('telegram.link') }}" method="POST" style="display: none;">
+    @csrf
+</form>
 
 @push('scripts')
 <script>

@@ -87,10 +87,6 @@
 
         </nav>
 
-        <div class="sidebar-note">
-            <p class="sidebar-note-label">Grounded answers</p>
-            <p class="sidebar-note-copy">Keep your chats aligned with the sources you have indexed in this workspace.</p>
-        </div>
 
         <div class="sidebar-footer">
             <div class="sidebar-user">

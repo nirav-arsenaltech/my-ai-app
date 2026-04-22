@@ -932,7 +932,7 @@ a { text-decoration: none; }
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    min-width: 50%;
+    min-width: 32%;
     backdrop-filter: blur(12px);
 }
 
@@ -1059,6 +1059,9 @@ a { text-decoration: none; }
     flex-wrap: wrap;
     gap: 5px;
     margin-top: 10px;
+}
+.text-blue {
+    color: var(--primary);
 }
 
 .citation-pill {
@@ -2002,6 +2005,16 @@ textarea.form-input { resize: vertical; }
     background: rgba(15, 118, 110, 0.1);
     border-color: rgba(15, 118, 110, 0.16);
     color: var(--success);
+}
+.telegram-enabled {
+    background: rgba(34, 101, 189, 0.1);
+    border-color: rgba(15, 56, 118, 0.212);
+    color: var(--primary);
+}
+.telegram-disabled {
+    background: rgba(122, 45, 45, 0.1);
+    border-color: rgba(190, 48, 48, 0.212);
+    color: var(--danger);
 }
 
 .role-badge-user {

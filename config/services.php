@@ -48,5 +48,10 @@ return [
         'embedding_version' => env('GEMINI_EMBEDDING_VERSION', 'v1beta'),
         'timeout' => env('GEMINI_TIMEOUT', 60),
     ],
+    'telegram' => [
+        'api_key' => env('TELEGRAM_API_KEY'),
+        'bot_url' => env('TELEGRAM_BOT_URL'),
+        'bot_username' => env('TELEGRAM_BOT_USERNAME'),
+    ],
 
 ];
