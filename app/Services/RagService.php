@@ -218,4 +218,27 @@ class RagService
             'last_message_at' => now(),
         ]);
     }
+
+    public function generateResponse(string $question, int $userId): string
+    {
+        $matches = $this->retrieveRelevantChunks($userId, $question);
+
+        if ($matches === []) {
+            return 'I could not find relevant information in your uploaded knowledge base. Please add documents or ask a question that matches your current data.';
+        }
+
+        $context = collect($matches)
+            ->map(fn (array $match, int $index) => sprintf(
+                "[Source %d | %s | chunk %d]\n%s",
+                $index + 1,
+                $match['title'],
+                $match['chunk_index'] + 1,
+                $match['content']
+            ))
+            ->implode("\n\n");
+
+        $response = $this->openAI->answerQuestion($question, $context, []);
+
+        return $response['content'];
+    }
 }

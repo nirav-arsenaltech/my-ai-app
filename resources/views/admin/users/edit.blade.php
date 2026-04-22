@@ -76,6 +76,34 @@
                         @enderror
                     </div>
 
+                    <div class="form-group">
+                        <label class="form-label" for="telegram_chat_id">Telegram Chat ID</label>
+                        <input id="telegram_chat_id" class="form-input {{ $errors->has('telegram_chat_id') ? 'input-error' : '' }}"
+                               name="telegram_chat_id" type="text" value="{{ old('telegram_chat_id', $user->telegram_chat_id) }}" placeholder="Enter Telegram Chat ID">
+                        @error('telegram_chat_id')
+                            <p class="field-error">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="form-group form-group-full">
+                        <input type="hidden" name="telegram_enabled" value="0">
+
+                        <label class="setting-toggle">
+                            <input type="checkbox" name="telegram_enabled" value="1"
+                                   {{ old('telegram_enabled', $user->telegram_enabled) ? 'checked' : '' }}>
+                            <span class="setting-toggle-ui">
+                                <span class="setting-toggle-copy">
+                                    <strong>Telegram Enabled</strong>
+                                    <span>Enable this to allow the user to chat with their knowledge via Telegram bot. <a href="{{ config('services.telegram.bot_url') }}" class="text-blue" target="_blank">{{ config('services.telegram.bot_url') }}</a></span>
+                                </span>
+                            </span>
+                        </label>
+
+                        @error('telegram_enabled')
+                            <p class="field-error">{{ $message }}</p>
+                        @enderror
+                    </div>
+
                     <div class="form-group form-group-full">
                         <div class="form-note">
                             Leave the password fields empty if you want to keep the current password unchanged.

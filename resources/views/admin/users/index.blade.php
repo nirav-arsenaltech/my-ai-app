@@ -92,6 +92,7 @@
                             <tr>
                                 <th>User</th>
                                 <th>Role</th>
+                                <th>Telegram Enabled</th>
                                 <th>Joined</th>
                                 <th class="table-actions-cell">Actions</th>
                             </tr>
@@ -113,6 +114,11 @@
                                     <td>
                                         <span class="role-badge {{ $user->is_admin ? 'role-badge-admin' : 'role-badge-user' }}">
                                             {{ $user->is_admin ? 'Admin' : 'User' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="role-badge {{ $user->telegram_enabled ? 'telegram-enabled' : 'telegram-disabled' }}">
+                                            {{ $user->telegram_enabled ? 'Yes' : 'No' }}
                                         </span>
                                     </td>
                                     <td>
@@ -171,7 +177,7 @@
         </div>
     </div>
 
-    @if ($users->total() > 0)
+    @if ($users->total() > 5)
         <div class="admin-pagination">
             @php
                 $perPage = (int) request('per_page', $users->perPage());

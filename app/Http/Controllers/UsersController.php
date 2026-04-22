@@ -71,6 +71,8 @@ class UsersController extends Controller
             'email' => "required|string|email|max:255|unique:users,email,{$user->id}",
             'password' => 'nullable|string|min:8|confirmed',
             'is_admin' => 'nullable|boolean',
+            'telegram_chat_id' => 'nullable|string',
+            'telegram_enabled' => 'nullable|boolean',
         ]);
 
         $user->update([
@@ -81,6 +83,8 @@ class UsersController extends Controller
                 : $user->password,
 
             'is_admin' => $request->boolean('is_admin'), 
+            'telegram_chat_id' => $validated['telegram_chat_id'],
+            'telegram_enabled' => $request->boolean('telegram_enabled'),
         ]);
 
         return redirect()->route('admin.users.index')->with('success', 'User updated successfully.');

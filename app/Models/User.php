@@ -24,6 +24,9 @@ class User extends Authenticatable
         'email',
         'password',
         'is_admin',
+        'telegram_chat_id',
+        'telegram_token',
+        'telegram_enabled',
     ];
 
     /**
@@ -47,6 +50,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_admin' => 'boolean',
+            'telegram_enabled' => 'boolean',
         ];
     }
 
