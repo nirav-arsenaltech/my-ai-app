@@ -32,6 +32,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     
     Route::patch('/telegram', [TelegramController::class, 'telegramUpdate'])->name('telegram.update');
     Route::post('/telegram/link', [TelegramController::class, 'generateLink'])->name('telegram.link');
+    Route::post('/telegram/unlink', [TelegramController::class, 'unlink'])->name('telegram.unlink');
 
     // ── Conversations API (JSON) ──────────────────────────────────────
     Route::post('/conversations',                          [ConversationController::class, 'store'])->name('conversations.store');

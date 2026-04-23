@@ -81,6 +81,9 @@ const createToast = ({ type = 'success', title, message }) => {
     window.setTimeout(closeToast, 4200);
 };
 
+// Expose to window for use in blade files
+window.createToast = createToast;
+
 document.querySelectorAll('[data-toast]').forEach((toast) => {
     const closeToast = () => {
         toast.classList.add('toast-exit');
@@ -105,6 +108,7 @@ if (convPage) {
         conversations: bootState.conversations ?? [],
         selectedConversation: bootState.selectedConversation ?? null,
         sending: false,
+        isTyping: false,
         uploading: false,
     };
 
@@ -193,6 +197,17 @@ if (convPage) {
                     ${citations}
                 </article>`;
         }).join('');
+
+        if (state.isTyping) {
+            el.msgStream.innerHTML += `
+                <div class="typing-bubble">
+                    <div class="typing-indicator">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>`;
+        }
 
         el.msgStream.scrollTop = el.msgStream.scrollHeight;
     };
@@ -295,9 +310,24 @@ if (convPage) {
         if (!state.selectedConversation) await createConversation(false);
         if (!state.selectedConversation) return;
 
+        const tempUserMessage = {
+            role: 'user',
+            content: question,
+            created_at: new Date().toISOString()
+        };
+
+        state.selectedConversation.messages = [
+            ...(state.selectedConversation.messages ?? []),
+            tempUserMessage
+        ];
+
+        el.question.value = '';
         state.sending = true;
+        state.isTyping = true;
         el.sendBtn.disabled = true;
-        el.status.textContent = 'Searching knowledge base and generating answer...';
+        el.status.textContent = 'Thinking...';
+
+        renderMessages();
 
         try {
             const payload = await request(`/conversations/${state.selectedConversation.id}/messages`, {
@@ -305,21 +335,22 @@ if (convPage) {
                 body: JSON.stringify({ question }),
             });
             state.selectedConversation.messages = [
-                ...(state.selectedConversation.messages ?? []),
+                ...(state.selectedConversation.messages.filter(m => m !== tempUserMessage)),
                 payload.user_message,
                 payload.assistant_message,
             ];
             state.selectedConversation.title = payload.conversation.title;
             syncConversation(payload.conversation);
             renderConversations();
-            renderMessages();
-            el.question.value = '';
-            el.status.textContent = 'Answer generated from your knowledge base.';
+            el.status.textContent = 'Answer generated.';
         } catch (e) {
             el.status.textContent = e.message;
+            state.selectedConversation.messages = state.selectedConversation.messages.filter(m => m !== tempUserMessage);
         } finally {
             state.sending = false;
+            state.isTyping = false;
             el.sendBtn.disabled = false;
+            renderMessages();
         }
     };
 

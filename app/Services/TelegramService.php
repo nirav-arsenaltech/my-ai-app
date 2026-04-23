@@ -27,11 +27,45 @@ class TelegramService
     {
         $response = Http::post("{$this->baseUrl}/sendMessage", [
             'chat_id' => $chatId,
-            'text' => $text,
-            'parse_mode' => 'Markdown',
+            'text' => $this->convertMarkdownToHtml($text),
+            'parse_mode' => 'HTML',
         ]);
 
-        return $response->json();
+        $result = $response->json();
+
+        if (!$response->successful()) {
+            Log::error("Telegram API error", [
+                'status' => $response->status(),
+                'result' => $result,
+                'chat_id' => $chatId
+            ]);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Convert Markdown to Telegram-compatible HTML
+     */
+    protected function convertMarkdownToHtml(string $text): string
+    {
+        // 1. Escape basic HTML chars first (essential for Telegram HTML mode)
+        $text = str_replace(['&', '<', '>'], ['&amp;', '&lt;', '&gt;'], $text);
+
+        // 2. Convert Bold: **text** -> <b>text</b>
+        $text = preg_replace('/\*\*(.*?)\*\*/', '<b>$1</b>', $text);
+
+        // 3. Convert Italic: *text* (only if not bold) -> <i>text</i>
+        // This regex avoids matching double asterisks
+        $text = preg_replace('/(?<!\*)\*(?!\*)(.*?)\*/', '<i>$1</i>', $text);
+
+        // 4. Convert Code: `text` -> <code>text</code>
+        $text = preg_replace('/`(.*?)`/', '<code>$1</code>', $text);
+
+        // 5. Convert Bullet Points: "* " or "- " at start of line -> "• "
+        $text = preg_replace('/^\s*[\*\-•]\s+/m', '• ', $text);
+
+        return $text;
     }
 
     /**
@@ -155,15 +189,18 @@ class TelegramService
             return;
         }
 
-        // Handle Conversation Context
-        $conversation = $user->conversations()->where('title', 'Telegram Chat')->first()
-            ?? $user->conversations()->create(['title' => 'Telegram Chat']);
-
-        // Generate response using RAG with history
-        $result = $this->ragService->answer($conversation, $text);
-        $response = $result['assistant_message']['content'] ?? 'I encountered an error processing your request.';
-
-        $this->sendMessage($chatId, $response);
+        // Generate response using RAG (stateless)
+        try {
+            $response = $this->ragService->statelessAnswer($user->id, $text);
+            $this->sendMessage($chatId, $response);
+        } catch (\Exception $e) {
+            Log::error('Error in Telegram RAG processing', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'chat_id' => $chatId
+            ]);
+            $this->sendMessage($chatId, "❌ Sorry, I encountered an error while processing your request. Please try again later.");
+        }
     }
 
     /**
@@ -188,10 +225,27 @@ class TelegramService
         $downloadUrl = "https://api.telegram.org/file/bot{$this->apiKey}/{$filePath}";
 
         try {
-            $content = Http::get($downloadUrl)->body();
+            $response = Http::get($downloadUrl);
+            $content = $response->body();
 
-            // Simple ingestion - assuming it's text for now, but RagService might handle others
-            // In a real app, you might want to use a PDF parser here.
+            // If it's a PDF, parse it
+            if ($mimeType === 'application/pdf' || str_ends_with(strtolower($fileName), '.pdf')) {
+                $parser = new \Smalot\PdfParser\Parser();
+                $pdf = $parser->parseContent($content);
+                $content = $pdf->getText();
+            }
+
+            // Ensure UTF-8 and clean up
+            $encoding = mb_detect_encoding($content, ['UTF-8', 'ISO-8859-1', 'ASCII'], true);
+            if ($encoding !== 'UTF-8') {
+                $content = mb_convert_encoding($content, 'UTF-8', $encoding ?: 'auto');
+            }
+            $content = preg_replace('/[^\x20-\x7E\t\r\n\x80-\xFF]/', '', $content); // Remove non-printable characters
+
+            if (empty(trim($content))) {
+                throw new \Exception("The document appears to be empty or contains no readable text.");
+            }
+
             $this->ragService->ingest(
                 $user->id,
                 $fileName,
@@ -202,7 +256,7 @@ class TelegramService
 
             $this->sendMessage($user->telegram_chat_id, "✅ *Document ingested successfully!* You can now ask questions about it.");
         } catch (\Exception $e) {
-            Log::error('Telegram document ingestion failed', ['error' => $e->getMessage()]);
+            Log::error('Telegram document ingestion failed', ['error' => $e->getMessage(), 'file' => $fileName]);
             $this->sendMessage($user->telegram_chat_id, "❌ Error processing document: " . $e->getMessage());
         }
     }
