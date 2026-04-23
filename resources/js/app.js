@@ -81,6 +81,9 @@ const createToast = ({ type = 'success', title, message }) => {
     window.setTimeout(closeToast, 4200);
 };
 
+// Expose to window for use in blade files
+window.createToast = createToast;
+
 document.querySelectorAll('[data-toast]').forEach((toast) => {
     const closeToast = () => {
         toast.classList.add('toast-exit');

@@ -71,4 +71,25 @@ class TelegramController extends Controller
         return redirect($url);
     }
 
+    public function unlink(Request $request)
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        
+        $chatId = $user->telegram_chat_id;
+        
+        if ($chatId) {
+            // Send notification to user on telegram before unlinking
+            $this->telegramService->sendMessage($chatId, "⚠️ *Account Unlinked*\n\nYour account has been successfully unlinked from the website. You can re-link at any time from your profile settings or by using the `/start` command with a new link.");
+        }
+
+        $user->update([
+            'telegram_chat_id' => null,
+            'telegram_enabled' => false,
+            'telegram_token' => null,
+        ]);
+
+        return redirect()->route('profile.edit')
+            ->with('status', 'telegram-unlinked');
+    }
 }

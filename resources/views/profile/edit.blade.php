@@ -77,6 +77,9 @@
             @if (session('status') === 'telegram-updated')
                 <div class="alert alert-success">Telegram records updated successfully.</div>
             @endif
+            @if (session('status') === 'telegram-unlinked')
+                <div class="alert alert-success">Telegram account unlinked successfully.</div>
+            @endif
 
             <form method="POST" action="{{ route('telegram.update') }}">
                 @csrf
@@ -91,12 +94,25 @@
                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <div>
                                     <h4 style="margin: 0; font-size: 14px; font-weight: 600;">Automated Link (Recommended)</h4>
-                                    <p style="margin: 4px 0 0 0; font-size: 12px; color: var(--text-muted);">Click the button below to open Telegram and link your account automatically.</p>
+                                    <p style="margin: 4px 0 0 0; font-size: 12px; color: var(--text-muted);">
+                                        @if($user->telegram_chat_id)
+                                            Your account is currently linked to Telegram.
+                                        @else
+                                            Click the button below to open Telegram and link your account automatically.
+                                        @endif
+                                    </p>
                                 </div>
-                                <button type="button" onclick="document.getElementById('telegram-link-form').submit();" class="btn btn-ghost" style="color: #0088cc; border-color: #0088cc;">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
-                                    Link Account
-                                </button>
+                                @if($user->telegram_chat_id)
+                                    <button type="button" id="telegram-unlink-trigger" class="btn btn-outline-danger" style="color: #ef4444; border-color: #ef4444;">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path><line x1="12" y1="2" x2="12" y2="12"></line></svg>
+                                        Disconnect
+                                    </button>
+                                @else
+                                    <button type="button" onclick="document.getElementById('telegram-link-form').submit();" class="btn btn-ghost" style="color: #0088cc; border-color: #0088cc;">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                                        Link Account
+                                    </button>
+                                @endif
                             </div>
                         </div>
 
@@ -214,6 +230,21 @@
         <button type="button" class="btn btn-danger-solid" id="delete-account-trigger">Delete My Account</button>
     </div>
 </div>
+{{-- Telegram Unlink Confirmation --}}
+<div class="confirm-modal" id="telegram-unlink-modal" style="display:none">
+    <div class="confirm-modal-backdrop" id="tg-modal-backdrop"></div>
+    <div class="confirm-modal-box">
+        <h3 class="confirm-modal-title">Unlink Telegram Account?</h3>
+        <p class="confirm-modal-body">
+            Are you sure you want to disconnect your Telegram account? You will no longer be able to chat with your knowledge base via the bot.
+        </p>
+        <div class="confirm-modal-actions">
+            <button type="button" class="btn btn-ghost" id="tg-modal-cancel">Cancel</button>
+            <button type="button" class="btn btn-danger-solid" id="tg-confirm-unlink">Yes, Disconnect</button>
+        </div>
+    </div>
+</div>
+
 {{-- Delete confirmation modal --}}
 <div class="confirm-modal" id="delete-account-modal" style="display:none">
     <div class="confirm-modal-backdrop" id="modal-backdrop"></div>
@@ -248,6 +279,10 @@
     @csrf
 </form>
 
+<form id="telegram-unlink-form" action="{{ route('telegram.unlink') }}" method="POST" style="display: none;">
+    @csrf
+</form>
+
 @push('scripts')
 <script>
     const _modal    = document.getElementById('delete-account-modal');
@@ -262,5 +297,40 @@
     @if ($errors->userDeletion->isNotEmpty())
         document.getElementById('delete-account-modal').style.display = 'flex';
     @endif
+
+    // Telegram Unlink Logic
+    const tgModal = document.getElementById('telegram-unlink-modal');
+    const tgTrigger = document.getElementById('telegram-unlink-trigger');
+    const tgCancel = document.getElementById('tg-modal-cancel');
+    const tgBackdrop = document.getElementById('tg-modal-backdrop');
+    const tgConfirm = document.getElementById('tg-confirm-unlink');
+    const tgUnlinkForm = document.getElementById('telegram-unlink-form');
+
+    tgTrigger?.addEventListener('click', () => tgModal.style.display = 'flex');
+    tgCancel?.addEventListener('click', () => tgModal.style.display = 'none');
+    tgBackdrop?.addEventListener('click', () => tgModal.style.display = 'none');
+    
+    tgConfirm?.addEventListener('click', () => {
+        tgUnlinkForm.submit();
+    });
+
+    // Handle session toasts
+    window.addEventListener('DOMContentLoaded', () => {
+        @if (session('status') === 'telegram-unlinked')
+            window.createToast({
+                type: 'success',
+                title: 'Account Unlinked',
+                message: 'Your Telegram account has been disconnected.'
+            });
+        @endif
+
+        @if (session('status') === 'telegram-updated')
+            window.createToast({
+                type: 'success',
+                title: 'Settings Updated',
+                message: 'Your Telegram preferences have been saved.'
+            });
+        @endif
+    });
 </script>
 @endpush

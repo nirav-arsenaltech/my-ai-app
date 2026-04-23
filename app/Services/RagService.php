@@ -181,6 +181,32 @@ class RagService
         ];
     }
 
+    /**
+     * Generate answer without storing conversation or messages (stateless)
+     */
+    public function statelessAnswer(int $userId, string $question): string
+    {
+        $matches = $this->retrieveRelevantChunks($userId, $question);
+
+        if ($matches === []) {
+            return 'I could not find relevant information in the uploaded knowledge base. Add documents or ask a question that matches the current data.';
+        }
+
+        $context = collect($matches)
+            ->map(fn (array $match, int $index) => sprintf(
+                "[Source %d | %s | chunk %d]\n%s",
+                $index + 1,
+                $match['title'],
+                $match['chunk_index'] + 1,
+                $match['content']
+            ))
+            ->implode("\n\n");
+
+        $response = $this->openAI->answerQuestion($question, $context, []);
+
+        return $response['content'];
+    }
+
     public function retrieveRelevantChunks(int $userId, string $question, int $limit = 5): array
     {
         $questionEmbedding = $this->openAI->embedding($question);
@@ -188,10 +214,10 @@ class RagService
 
         $chunks = Document::query()
             ->select(['id', 'knowledge_document_id', 'content', 'chunk_index', 'source_name'])
-            ->selectRaw('(1 - (embedding <=> ?)) as similarity_score', [$vectorString])
+            ->selectRaw('(1 - (embedding <=> ?::vector)) as similarity_score', [$vectorString])
             ->whereHas('knowledgeDocument', fn ($query) => $query->where('user_id', $userId))
-            ->whereRaw('(1 - (embedding <=> ?)) >= ?', [$vectorString, 0.25])
-            ->orderByRaw('embedding <=> ?', [$vectorString])
+            ->whereRaw('(1 - (embedding <=> ?::vector)) >= ?', [$vectorString, 0.25])
+            ->orderByRaw('embedding <=> ?::vector', [$vectorString])
             ->with('knowledgeDocument:id,title,source_name')
             ->limit($limit)
             ->get();

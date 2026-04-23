@@ -14,6 +14,7 @@ class ConversationController extends Controller
         $startNew = $request->boolean('new');
 
         $conversations = Conversation::forUser($userId)
+            ->where('title', '!=', 'Telegram Chat')
             ->orderByDesc('last_message_at')
             ->orderByDesc('updated_at')
             ->get();
