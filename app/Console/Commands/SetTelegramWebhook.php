@@ -29,14 +29,18 @@ class SetTelegramWebhook extends Command
         if ($this->option('remove')) {
             $this->info('Removing webhook...');
 
-            $telegramService = app(TelegramService::class);
-            $response = $telegramService->setWebhook('');
+            try {
+                $telegramService = app(TelegramService::class);
+                $response = $telegramService->setWebhook('');
 
-            if ($response['ok']) {
-                $this->info('Webhook removed successfully!');
-                $this->info('You can now use getUpdates API to get chat IDs.');
-            } else {
-                $this->error('Failed to remove webhook: ' . ($response['description'] ?? 'Unknown error'));
+                if ($response) {
+                    $this->info('Webhook removed successfully!');
+                    $this->info('You can now use getUpdates API to get chat IDs.');
+                } else {
+                    $this->error('Failed to remove webhook.');
+                }
+            } catch (\Exception $e) {
+                $this->error('Failed to remove webhook: ' . $e->getMessage());
             }
 
             return 0;
@@ -59,13 +63,17 @@ class SetTelegramWebhook extends Command
         $fullUrl = $url . '/telegram/webhook';
         $this->info("Setting webhook to: {$fullUrl}");
 
-        $telegramService = app(TelegramService::class);
-        $response = $telegramService->setWebhook($fullUrl);
+        try {
+            $telegramService = app(TelegramService::class);
+            $response = $telegramService->setWebhook($fullUrl);
 
-        if ($response['ok']) {
-            $this->info('Webhook set successfully!');
-        } else {
-            $this->error('Failed to set webhook: ' . ($response['description'] ?? 'Unknown error'));
+            if ($response) {
+                $this->info('Webhook set successfully!');
+            } else {
+                $this->error('Failed to set webhook.');
+            }
+        } catch (\Exception $e) {
+            $this->error('Failed to set webhook: ' . $e->getMessage());
         }
 
         return 0;

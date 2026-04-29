@@ -3,45 +3,42 @@
 namespace App\Services;
 
 use App\Models\User;
+use App\Models\KnowledgeDocument;
 use App\Services\RagService;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Telegram\Bot\Laravel\Facades\Telegram;
 
 class TelegramService
 {
-    protected string $apiKey;
-    protected string $baseUrl;
     protected RagService $ragService;
 
     public function __construct(RagService $ragService)
     {
-        $this->apiKey = config('services.telegram.api_key');
-        $this->baseUrl = "https://api.telegram.org/bot{$this->apiKey}";
         $this->ragService = $ragService;
     }
 
     /**
      * Send a message to a chat
      */
-    public function sendMessage(int $chatId, string $text): array
+    public function sendMessage(int $chatId, string $text): array|object
     {
-        $response = Http::post("{$this->baseUrl}/sendMessage", [
-            'chat_id' => $chatId,
-            'text' => $this->convertMarkdownToHtml($text),
-            'parse_mode' => 'HTML',
-        ]);
+        try {
+            $response = Telegram::sendMessage([
+                'chat_id' => $chatId,
+                'text' => $this->convertMarkdownToHtml($text),
+                'parse_mode' => 'HTML',
+            ]);
 
-        $result = $response->json();
-
-        if (!$response->successful()) {
+            return is_object($response) && method_exists($response, 'toArray') ? $response->toArray() : (array) $response;
+        } catch (\Exception $e) {
             Log::error("Telegram API error", [
-                'status' => $response->status(),
-                'result' => $result,
+                'message' => $e->getMessage(),
                 'chat_id' => $chatId
             ]);
-        }
 
-        return $result;
+            return [];
+        }
     }
 
     /**
@@ -71,26 +68,23 @@ class TelegramService
     /**
      * Set webhook for receiving updates
      */
-    public function setWebhook(string $url): array
+    public function setWebhook(string $url): bool|object
     {
-        $response = Http::post("{$this->baseUrl}/setWebhook", [
+        return Telegram::setWebhook([
             'url' => $url,
         ]);
-
-        return $response->json();
     }
 
     /**
      * Send chat action (e.g. typing)
      */
-    public function sendChatAction(int $chatId, string $action = 'typing'): array
+    public function sendChatAction(int $chatId, string $action = 'typing'): bool|object
     {
-        $response = Http::post("{$this->baseUrl}/sendChatAction", [
+        return Telegram::sendChatAction([
             'chat_id' => $chatId,
             'action' => $action,
         ]);
 
-        return $response->json();
     }
 
     /**
@@ -98,11 +92,19 @@ class TelegramService
      */
     public function getFile(string $fileId): array
     {
-        $response = Http::get("{$this->baseUrl}/getFile", [
+        $file = Telegram::getFile([
             'file_id' => $fileId,
         ]);
 
-        return $response->json();
+        return [
+            'ok' => true,
+            'result' => [
+                'file_id' => $file->fileId,
+                'file_unique_id' => $file->fileUniqueId,
+                'file_size' => $file->fileSize,
+                'file_path' => $file->filePath,
+            ]
+        ];
     }
 
     /**
@@ -110,11 +112,11 @@ class TelegramService
      */
     public function getUpdates(int $offset = 0): array
     {
-        $response = Http::get("{$this->baseUrl}/getUpdates", [
+        $updates = Telegram::getUpdates([
             'offset' => $offset,
         ]);
 
-        return $response->json();
+        return collect($updates)->map(fn($update) => $update->toArray())->toArray();
     }
 
     /**
@@ -189,6 +191,12 @@ class TelegramService
             return;
         }
 
+        // Handle inline commands
+        if (trim($text) === '/list') {
+            $this->handleListCommand($user, $chatId);
+            return;
+        }
+
         // Generate response using RAG (stateless)
         try {
             $response = $this->ragService->statelessAnswer($user->id, $text);
@@ -201,6 +209,35 @@ class TelegramService
             ]);
             $this->sendMessage($chatId, "❌ Sorry, I encountered an error while processing your request. Please try again later.");
         }
+    }
+
+    /**
+     * Handle the /list command to show user's indexed documents
+     */
+    protected function handleListCommand(User $user, int $chatId): void
+    {
+        $documents = KnowledgeDocument::forUser($user->id)
+            ->latest()
+            ->get();
+
+        if ($documents->isEmpty()) {
+            $this->sendMessage($chatId, "🗂 *Your Indexed Documents*\n\nYou don't have any documents indexed yet. You can upload files directly here or paste text in the dashboard to get started.");
+            return;
+        }
+
+        $message = "🗂 *Your Indexed Documents*\n\n";
+        foreach ($documents as $index => $doc) {
+            $num = $index + 1;
+            $type = strtoupper($doc->source_type);
+            $message .= "{$num}. *{$doc->title}* ({$type})\n";
+            if ($doc->source_type !== 'text') {
+                $message .= "   └ `{$doc->source_name}`\n";
+            }
+        }
+        
+        $message .= "\n_To index a new document, simply upload a file to this chat._";
+
+        $this->sendMessage($chatId, $message);
     }
 
     /**
@@ -222,7 +259,8 @@ class TelegramService
         }
 
         $filePath = $fileInfo['result']['file_path'];
-        $downloadUrl = "https://api.telegram.org/file/bot{$this->apiKey}/{$filePath}";
+        $apiKey = config('services.telegram.api_key');
+        $downloadUrl = "https://api.telegram.org/file/bot{$apiKey}/{$filePath}";
 
         try {
             $response = Http::get($downloadUrl);
