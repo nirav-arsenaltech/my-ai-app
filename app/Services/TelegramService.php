@@ -22,7 +22,12 @@ class TelegramService
         $this->activeBot = TelegramBot::getActive();
 
         if ($this->activeBot) {
-            Telegram::setAccessToken($this->activeBot->token);
+            try {
+                Telegram::setAccessToken($this->activeBot->token);
+            } catch (\Exception $e) {
+                Log::error('Failed to set Telegram access token: '.$e->getMessage());
+                $this->activeBot = null; // Treat as no active bot if token is invalid
+            }
         }
     }
 
@@ -165,8 +170,12 @@ class TelegramService
                         'telegram_token' => null, // Clear token after use
                     ]);
 
-                    $this->sendMessage($chatId, "✅ *Success!* Your account has been linked.\n\n".
-                        'You can now chat with your knowledge base directly from here.');
+                    $docCount = $user->knowledgeDocuments()->count();
+                    $docText = $docCount === 1 ? '1 document' : "{$docCount} documents";
+
+                    $this->sendMessage($chatId, "✅ *Success! Account Linked.*\n\n".
+                        "I've synced your knowledge base containing *{$docText}*.\n\n".
+                        'How can I help you today?');
 
                     return;
                 }
@@ -175,8 +184,11 @@ class TelegramService
             // Normal start
             $user = User::where('telegram_chat_id', $chatId)->first();
             if ($user) {
-                $this->sendMessage($chatId, "👋 *Welcome back, {$user->name}!*\n\n".
-                    'How can I help you today?');
+                $docCount = $user->knowledgeDocuments()->count();
+                $docText = $docCount === 1 ? '1 document' : "{$docCount} documents";
+
+                $this->sendMessage($chatId, "👋 *Welcome back, {$user->name}!* \n\n".
+                    "I've synced your *{$docText}*. How can I help you today?");
             } else {
                 $this->sendMessage($chatId, "👋 *Welcome!*\n\n".
                     "To link your account, please go to your profile on the website and click the 'Link Telegram' button.\n\n".
