@@ -7,7 +7,6 @@ use App\Models\TelegramBot;
 use App\Models\User;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Smalot\PdfParser\Parser;
 use Telegram\Bot\Laravel\Facades\Telegram;
 
 class TelegramService
@@ -16,9 +15,12 @@ class TelegramService
 
     protected ?TelegramBot $activeBot;
 
-    public function __construct(RagService $ragService)
+    protected DocumentParser $parser;
+
+    public function __construct(RagService $ragService, DocumentParser $parser)
     {
         $this->ragService = $ragService;
+        $this->parser = $parser;
         $this->activeBot = TelegramBot::getActive();
 
         if ($this->activeBot) {
@@ -298,19 +300,12 @@ class TelegramService
             $response = Http::get($downloadUrl);
             $content = $response->body();
 
-            // If it's a PDF, parse it
+            // Use the centralized DocumentParser for consistency
             if ($mimeType === 'application/pdf' || str_ends_with(strtolower($fileName), '.pdf')) {
-                $parser = new Parser;
-                $pdf = $parser->parseContent($content);
-                $content = $pdf->getText();
+                $content = $this->parser->parsePdfFromContent($content);
+            } else {
+                $content = $this->parser->cleanContent($content);
             }
-
-            // Ensure UTF-8 and clean up
-            $encoding = mb_detect_encoding($content, ['UTF-8', 'ISO-8859-1', 'ASCII'], true);
-            if ($encoding !== 'UTF-8') {
-                $content = mb_convert_encoding($content, 'UTF-8', $encoding ?: 'auto');
-            }
-            $content = preg_replace('/[^\x20-\x7E\t\r\n\x80-\xFF]/', '', $content); // Remove non-printable characters
 
             if (empty(trim($content))) {
                 throw new \Exception('The document appears to be empty or contains no readable text.');

@@ -893,6 +893,10 @@ a { text-decoration: none; }
         linear-gradient(180deg, #10213a 0%, #0f1c31eb 100%);
 }
 
+body.admin-body:has(aside.sidebar.sidebar-open) {
+    overflow: hidden;
+}
+
 /* Brand */
 .sidebar-brand {
     display: flex;
