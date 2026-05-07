@@ -1083,7 +1083,7 @@ body.admin-body:has(aside.sidebar.sidebar-open) {
 .user-name {
     font-size: 13px;
     font-weight: 600;
-    color: #5d6672;
+    color: #A9BCD5;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1604,7 +1604,7 @@ body.admin-body:has(aside.sidebar.sidebar-open) {
 .conversation-card.active {
     border-color: var(--primary);
     background: white;
-    box-shadow: 
+    box-shadow:
         0 0 0 1px var(--primary),
         0 8px 16px rgba(55, 114, 255, 0.08);
     transform: translateX(2px);

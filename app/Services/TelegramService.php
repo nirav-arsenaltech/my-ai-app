@@ -200,6 +200,32 @@ class TelegramService
             return;
         }
 
+        $intentWords = ['creator', 'created', 'made', 'build', 'built', 'developed'];
+        $contextWords = ['this', 'ai', 'bot', 'app', 'site'];
+
+        $words = preg_split('/\s+/', strtolower($text));
+
+        $intentMatch = false;
+        $contextMatch = false;
+
+        foreach ($words as $word) {
+            if (!$intentMatch && in_array($word, $intentWords)) {
+                $intentMatch = true;
+            }
+
+            if (!$contextMatch && in_array($word, $contextWords)) {
+                $contextMatch = true;
+            }
+
+            if ($intentMatch && $contextMatch) {
+                $this->sendMessage(
+                    $chatId,
+                    "Nirav Gajera is a developer who created this site.\n\nCheck out <a href=\"https://nirav-gajera.github.io/\">Nirav Gajera</a> for more information."
+                );
+                return;
+            }
+        }
+
         // Find user
         $user = User::where('telegram_chat_id', $chatId)
             ->where('telegram_enabled', true)
