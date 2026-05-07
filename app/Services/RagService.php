@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\AiUsage;
 use App\Models\Conversation;
 use App\Models\Document;
 use App\Models\KnowledgeDocument;
@@ -108,7 +109,7 @@ class RagService
         });
     }
 
-    public function answer(Conversation $conversation, string $question): array
+    public function answer(Conversation $conversation, string $question, string $source = 'web'): array
     {
         $history = $conversation->messages()
             ->latest()
@@ -155,7 +156,9 @@ class RagService
             ))
             ->implode("\n\n");
 
+        $startTime = microtime(true);
         $response = $this->openAI->answerQuestion($question, $context, $history);
+        $latency = (int) ((microtime(true) - $startTime) * 1000);
 
         $assistantMessage = $conversation->messages()->create([
             'role' => 'assistant',
@@ -172,6 +175,19 @@ class RagService
             ],
         ]);
 
+        defer(fn () => AiUsage::create([
+            'user_id' => $conversation->user_id,
+            'message_id' => $assistantMessage->id,
+            'provider' => $response['meta']['provider'] ?? 'google',
+            'model' => $response['meta']['model'] ?? config('services.gemini.chat_model', 'gemini-1.5-flash'),
+            'type' => 'chat',
+            'prompt_tokens' => $response['usage']['prompt_tokens'] ?? 0,
+            'completion_tokens' => $response['usage']['completion_tokens'] ?? 0,
+            'total_tokens' => $response['usage']['total_tokens'] ?? (($response['usage']['prompt_tokens'] ?? 0) + ($response['usage']['completion_tokens'] ?? 0)),
+            'latency_ms' => $latency,
+            'metadata' => ['source' => $source],
+        ]));
+
         $this->touchConversation($conversation, $question);
 
         return [
@@ -184,7 +200,7 @@ class RagService
     /**
      * Generate answer without storing conversation or messages (stateless)
      */
-    public function statelessAnswer(int $userId, string $question): string
+    public function statelessAnswer(int $userId, string $question, string $source = 'telegram'): string
     {
         $matches = $this->retrieveRelevantChunks($userId, $question);
 
@@ -202,7 +218,22 @@ class RagService
             ))
             ->implode("\n\n");
 
+        $startTime = microtime(true);
         $response = $this->openAI->answerQuestion($question, $context, []);
+        $latency = (int) ((microtime(true) - $startTime) * 1000);
+
+        defer(fn () => AiUsage::create([
+            'user_id' => $userId,
+            'message_id' => null,
+            'provider' => $response['meta']['provider'] ?? 'google',
+            'model' => $response['meta']['model'] ?? config('services.gemini.chat_model', 'gemini-1.5-flash'),
+            'type' => 'chat',
+            'prompt_tokens' => $response['usage']['prompt_tokens'] ?? 0,
+            'completion_tokens' => $response['usage']['completion_tokens'] ?? 0,
+            'total_tokens' => $response['usage']['total_tokens'] ?? (($response['usage']['prompt_tokens'] ?? 0) + ($response['usage']['completion_tokens'] ?? 0)),
+            'latency_ms' => $latency,
+            'metadata' => ['source' => $source],
+        ]));
 
         return $response['content'];
     }
