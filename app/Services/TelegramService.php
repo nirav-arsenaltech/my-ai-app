@@ -61,21 +61,38 @@ class TelegramService
      */
     protected function convertMarkdownToHtml(string $text): string
     {
-        // 1. Escape basic HTML chars first (essential for Telegram HTML mode)
-        $text = str_replace(['&', '<', '>'], ['&amp;', '&lt;', '&gt;'], $text);
+        // Preserve existing allowed HTML tags temporarily
+        $placeholders = [];
 
-        // 2. Convert Bold: **text** -> <b>text</b>
-        $text = preg_replace('/\*\*(.*?)\*\*/', '<b>$1</b>', $text);
+        preg_match_all('/<(a|b|strong|i|em|code|pre)(\s+[^>]*)?>.*?<\/\1>/si', $text, $matches);
 
-        // 3. Convert Italic: *text* (only if not bold) -> <i>text</i>
-        // This regex avoids matching double asterisks
-        $text = preg_replace('/(?<!\*)\*(?!\*)(.*?)\*/', '<i>$1</i>', $text);
+        foreach ($matches[0] as $index => $html) {
+            $key = "__HTML_BLOCK_{$index}__";
+            $placeholders[$key] = $html;
+            $text = str_replace($html, $key, $text);
+        }
 
-        // 4. Convert Code: `text` -> <code>text</code>
-        $text = preg_replace('/`(.*?)`/', '<code>$1</code>', $text);
+        // Escape remaining unsafe HTML
+        $text = htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 
-        // 5. Convert Bullet Points: "* " or "- " at start of line -> "• "
+        // Markdown -> HTML
+
+        // Bold
+        $text = preg_replace('/\*\*(.*?)\*\*/s', '<b>$1</b>', $text);
+
+        // Italic
+        $text = preg_replace('/(?<!\*)\*(?!\*)(.*?)\*(?!\*)/s', '<i>$1</i>', $text);
+
+        // Inline code
+        $text = preg_replace('/`(.*?)`/s', '<code>$1</code>', $text);
+
+        // Bullet points
         $text = preg_replace('/^\s*[\*\-•]\s+/m', '• ', $text);
+
+        // Restore preserved HTML tags
+        foreach ($placeholders as $key => $html) {
+            $text = str_replace($key, $html, $text);
+        }
 
         return $text;
     }

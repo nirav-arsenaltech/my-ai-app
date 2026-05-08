@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\DashboardController;
@@ -62,8 +63,8 @@ Route::middleware('verified')->group(function () {
             Route::resource('users', UsersController::class)->except('show');
             Route::resource('telegram-bots', TelegramBotController::class)->except('show');
             // ── Analytics API (JSON) ──────────────────────────────────────────
-            Route::get('analytics', [\App\Http\Controllers\AnalyticsController::class, 'index'])->name('analytics.index');
-            Route::get('analytics/data', [\App\Http\Controllers\AnalyticsController::class, 'data'])->name('analytics.data');
+            Route::get('analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
+            Route::get('analytics/data', [AnalyticsController::class, 'data'])->name('analytics.data');
         });
 });
 

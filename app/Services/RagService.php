@@ -238,7 +238,7 @@ class RagService
         return $response['content'];
     }
 
-    public function retrieveRelevantChunks(int $userId, string $question, int $limit = 5): array
+    public function retrieveRelevantChunks(int $userId, string $question, int $limit = 4): array
     {
         $questionEmbedding = $this->openAI->embedding($question);
         $vectorString = '['.implode(',', $questionEmbedding).']';
@@ -247,10 +247,10 @@ class RagService
             ->select(['id', 'knowledge_document_id', 'content', 'chunk_index', 'source_name'])
             ->selectRaw('(1 - (embedding <=> ?::vector)) as similarity_score', [$vectorString])
             ->whereHas('knowledgeDocument', fn ($query) => $query->where('user_id', $userId))
-            ->whereRaw('(1 - (embedding <=> ?::vector)) >= ?', [$vectorString, 0.25])
+            ->whereRaw('(1 - (embedding <=> ?::vector)) >= ?', [$vectorString, 0.45])
             ->orderByRaw('embedding <=> ?::vector', [$vectorString])
             ->with('knowledgeDocument:id,title,source_name')
-            ->limit($limit)
+            ->limit($limit * 3)
             ->get();
 
         if ($chunks->isEmpty()) {
