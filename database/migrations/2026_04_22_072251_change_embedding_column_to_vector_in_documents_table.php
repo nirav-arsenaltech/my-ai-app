@@ -12,16 +12,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Enable pgvector extension
-        DB::statement('CREATE EXTENSION IF NOT EXISTS vector');
+        if (DB::getDriverName() === 'pgsql') {
+            // Enable pgvector extension
+            DB::statement('CREATE EXTENSION IF NOT EXISTS vector');
 
-        Schema::table('documents', function (Blueprint $table) {
-            // Drop the old longText column
-            $table->dropColumn('embedding');
-        });
+            Schema::table('documents', function (Blueprint $table) {
+                // Drop the old longText column
+                $table->dropColumn('embedding');
+            });
 
-        // Add the new vector column with 3072 dimensions
-        DB::statement('ALTER TABLE documents ADD COLUMN embedding vector(3072)');
+            // Add the new vector column with 3072 dimensions
+            DB::statement('ALTER TABLE documents ADD COLUMN embedding vector(3072)');
+        }
     }
 
     /**

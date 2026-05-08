@@ -25,7 +25,7 @@
 
         :root {
             --surface: #ffffff;
-            --surface-alt: #f8fafc;
+            --surface-alt: #ebedefe0;
             --surface-hover: #f1f5f9;
             --border: #e2e8f0;
             --border-light: #f1f5f9;
@@ -351,7 +351,7 @@
 
         .range-btn:hover {
             color: var(--text-primary);
-            background: rgba(59, 130, 246, 0.05);
+            background: #3b82f61f;
         }
 
         .range-btn.active {

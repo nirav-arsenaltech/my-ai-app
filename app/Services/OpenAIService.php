@@ -27,24 +27,26 @@ class OpenAIService
 
     public function answerQuestion(string $question, string $context, array $history = []): array
     {
+        $instructions = <<<PROMPT
+            You are a knowledge base assistant.
+
+            Rules:
+            - Answer ONLY from the provided context.
+            - If the answer is missing, say:
+            "The information is not available in the knowledge base."
+            - Keep answers short, clear, and direct.
+            - Do not explain unnecessary details.
+            - Do not repeat the question.
+            - Do not make assumptions or invent information.
+            - Use plain text formatting only.
+            - Mention the source only if explicitly available in the context.
+
+            Context:
+            {$context}
+            PROMPT;
+
         $response = agent(
-            instructions: implode("\n", [
-                'You are a helpful and knowledgeable assistant that answers questions based on provided context.',
-                'Guidelines:
-                1. Answer ONLY using the provided context
-                2. If the answer is not in the context, clearly state that the information is not available
-                3. Cite the source when providing information
-                4. Be concise and clear in your responses
-                5. If the user asks about something outside the context, offer to help with related topics from the knowledge base
-                6. Maintain a professional and friendly tone
-                
-                Never:
-                - Make up information not in the context
-                - Assume information beyond what is provided
-                - Be rude or dismissive',
-                '',
-                "Knowledge base context:\n{$context}",
-            ]),
+            instructions: $instructions,
             messages: $this->normalizeHistory($history),
         )->prompt(
             prompt: $question,
@@ -67,6 +69,11 @@ class OpenAIService
 
                 if ($text === '') {
                     return null;
+                }
+
+                // Truncate long history turns to avoid bloating the prompt
+                if (mb_strlen($text) > 400) {
+                    $text = mb_substr($text, 0, 400).'…';
                 }
 
                 return new Message(
