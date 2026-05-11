@@ -63,4 +63,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(KnowledgeDocument::class);
     }
+
+    public function notes(): HasMany
+    {
+        return $this->hasMany(Note::class);
+    }
 }

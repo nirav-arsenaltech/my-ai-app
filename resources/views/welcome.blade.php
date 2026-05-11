@@ -41,8 +41,8 @@
                     <h1>Turn your documents into a searchable AI workspace.</h1>
                     <p class="landing-lead">
                         Upload policies, manuals, FAQs, notes, CSVs, JSON files, PDF or pasted text.
-                        The system chunks your content, creates embeddings, retrieves relevant context,
-                        and answers questions using only your indexed knowledge base.
+                        The system chunks your content for AI retrieval while providing a secure, 
+                        private space for your thoughts with advanced sharing capabilities.
                     </p>
 
                     <div class="landing-cta-row">
@@ -54,9 +54,9 @@
 
                     <ul class="landing-trust-list">
                         <li>Private user-scoped document retrieval</li>
+                        <li>Secure notes with expiration & password</li>
                         <li>Chunk-based semantic search</li>
                         <li>Citation-backed AI answers</li>
-                        <li>Re-index documents</li>
                         <li>Telegram Bot Support</li>
                     </ul>
 
@@ -66,6 +66,10 @@
                             <a href="#how-it-works" style="display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 700; color: #1d4ed8; text-decoration: none; transition: transform 0.2s;" onmouseover="this.style.transform='translateX(4px)'" onmouseout="this.style.transform='translateX(0)'">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
                                 How it works
+                            </a>
+                            <a href="#notes-feature" style="display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 700; color: #1d4ed8; text-decoration: none; transition: transform 0.2s;" onmouseover="this.style.transform='translateX(4px)'" onmouseout="this.style.transform='translateX(0)'">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                                Secure Notes
                             </a>
                             <a href="#features" style="display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 700; color: #1d4ed8; text-decoration: none; transition: transform 0.2s;" onmouseover="this.style.transform='translateX(4px)'" onmouseout="this.style.transform='translateX(0)'">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
@@ -186,6 +190,81 @@
                     </article>
                 </div>
             </section>
+            
+            <section class="landing-section landing-section-alt" id="notes-feature">
+                <div class="landing-section-head">
+                    <span class="landing-kicker">New Feature</span>
+                    <h2>Secure, Distraction-Free Notes.</h2>
+                    <p class="landing-lead text-center mx-auto" style="max-width: 700px;">
+                        Beyond documents, capture your personal thoughts in a high-performance 
+                        environment built for writers.
+                    </p>
+                </div>
+
+                <div class="landing-feature-showcase">
+                    <div class="showcase-grid">
+                        <div class="showcase-content reveal-on-scroll">
+                            <div class="feature-item">
+                                <div class="feature-icon-mini">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2H2v10h10V2zM12 12H2v10h10V12zM22 2h-10v10h10V2zM22 12h-10v10h10V12z"/></svg>
+                                </div>
+                                <div>
+                                    <h4>Distraction-Free Editor</h4>
+                                    <p>A centered, wide-canvas layout with high-readability typography optimized for deep focus.</p>
+                                </div>
+                            </div>
+                            <div class="feature-item">
+                                <div class="feature-icon-mini">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                </div>
+                                <div>
+                                    <h4>Advanced Share Center</h4>
+                                    <p>Control exactly who sees your notes with password protection and self-destructing links.</p>
+                                </div>
+                            </div>
+                            <div class="feature-item">
+                                <div class="feature-icon-mini">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                </div>
+                                <div>
+                                    <h4>Custom Expiration</h4>
+                                    <p>Set precise expiration dates. Once time runs out, the share link is automatically revoked.</p>
+                                </div>
+                            </div>
+                            <div class="feature-item">
+                                <div class="feature-icon-mini">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                                </div>
+                                <div>
+                                    <h4>AI Grammar Fix</h4>
+                                    <p>Instantly polish your writing with built-in AI that corrects grammar, spelling, and tone in one click.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="showcase-visual reveal-on-scroll">
+                            <div class="note-card-preview">
+                                <div class="preview-header">
+                                    <div class="preview-dots"><span></span><span></span><span></span></div>
+                                    <div class="preview-title">Project Roadmap.md</div>
+                                </div>
+                                <div class="preview-body">
+                                    <div class="preview-line long"></div>
+                                    <div class="preview-line mid"></div>
+                                    <div class="preview-line short"></div>
+                                    <div class="preview-line long"></div>
+                                    <div class="preview-badge">Shared via link</div>
+                                    <div class="preview-badge" style="background: var(--primary-light); color: var(--primary); margin-left: 4px;">Fixed by AI</div>
+                                    <div class="preview-lock">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                        Password Protected
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
             <section class="landing-section landing-section-alt" id="features">
                 <div class="landing-section-head">
@@ -231,6 +310,13 @@
                     </article>
                     <article class="landing-feature-card reveal-on-scroll">
                         <div class="landing-feature-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        </div>
+                        <h3>Secure notes & sharing</h3>
+                        <p>Write private notes and share them via secure, password-protected links with custom expiration dates.</p>
+                    </article>
+                    <article class="landing-feature-card reveal-on-scroll">
+                        <div class="landing-feature-icon">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
                         </div>
                         <h3>Telegram access</h3>
@@ -254,6 +340,10 @@
                         <span class="landing-cta-point">
                             <span class="landing-green-dot" aria-hidden="true"></span>
                             Document-backed answers
+                        </span>
+                        <span class="landing-cta-point">
+                            <span class="landing-green-dot" aria-hidden="true"></span>
+                            Secure shared notes
                         </span>
                         <span class="landing-cta-point">
                             <span class="landing-green-dot" aria-hidden="true"></span>
@@ -289,6 +379,7 @@
             <div class="landing-footer-badges" aria-label="Product highlights">
                 <span>RAG search</span>
                 <span>Citations</span>
+                <span>Secure notes</span>
                 <span>Telegram bot</span>
             </div>
         </div>

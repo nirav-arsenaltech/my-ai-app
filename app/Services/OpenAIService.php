@@ -5,6 +5,7 @@ namespace App\Services;
 use Laravel\Ai\Embeddings;
 use Laravel\Ai\Enums\Lab;
 use Laravel\Ai\Messages\Message;
+
 use function Laravel\Ai\agent;
 
 class OpenAIService
@@ -59,6 +60,26 @@ class OpenAIService
             'usage' => $response->usage->toArray(),
             'meta' => $response->meta->toArray(),
         ];
+    }
+
+    public function fixGrammar(string $text): string
+    {
+        $instructions = <<<'PROMPT'
+            You are a professional editor.
+            Fix the grammar, spelling, and punctuation of the provided text.
+            Maintain the original tone and meaning.
+            Only return the corrected text, nothing else.
+            PROMPT;
+
+        $response = agent(
+            instructions: $instructions,
+        )->prompt(
+            prompt: $text,
+            provider: Lab::Gemini,
+            model: (string) config('services.gemini.chat_model', 'gemini-2.5-flash-lite'),
+        );
+
+        return trim($response->text);
     }
 
     private function normalizeHistory(array $history): array
