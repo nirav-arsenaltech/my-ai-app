@@ -6,12 +6,18 @@ use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KnowledgeDocumentController;
 use App\Http\Controllers\MessageController;
+use App\Http\Controllers\NoteController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SharedNoteController;
 use App\Http\Controllers\TelegramBotController;
 use App\Http\Controllers\TelegramController;
 use App\Http\Controllers\UsersController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+
+// Public shared note routes
+Route::get('s/{token}', [SharedNoteController::class, 'show'])->name('notes.shared.show');
+Route::post('s/{token}/verify', [SharedNoteController::class, 'verifyPassword'])->name('notes.shared.verify');
 
 Route::get('/', function () {
     if (Auth::check()) {
@@ -27,6 +33,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard',     DashboardController::class)->name('dashboard');
     Route::get('/conversations', [ConversationController::class, 'index'])->name('conversations.index');
     Route::get('/knowledge',     [KnowledgeDocumentController::class, 'page'])->name('knowledge.index');
+
+    // ── Notes API (JSON) ──────────────────────────────────────────
+    Route::resource('notes', NoteController::class);
+    Route::post('notes/{note}/share', [NoteController::class, 'share'])->name('notes.share');
+    Route::delete('notes/{note}/share', [NoteController::class, 'revokeShare'])->name('notes.revoke-share');
+    Route::post('/notes/fix-grammar', [NoteController::class, 'fixGrammar'])->name('notes.fix-grammar');
 
     // ── Profile ──────────────────────────────────────────────────────
     Route::get('/profile',    [ProfileController::class, 'edit'])->name('profile.edit');

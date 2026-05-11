@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Conversation;
 use App\Models\KnowledgeDocument;
+use App\Models\Note;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
@@ -14,6 +15,7 @@ class DashboardController extends Controller
 
         $conversationCount = Conversation::forUser($userId)->count();
         $documentCount     = KnowledgeDocument::forUser($userId)->count();
+        $noteCount         = Note::where('user_id', $userId)->count();
 
         $recentConversations = Conversation::forUser($userId)
             ->orderByDesc('last_message_at')
@@ -27,11 +29,18 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
+        $recentNotes = Note::where('user_id', $userId)
+            ->latest()
+            ->take(5)
+            ->get();
+
         return view('dashboard', compact(
             'conversationCount',
             'documentCount',
             'recentConversations',
             'recentDocuments',
+            'recentNotes',
+            'noteCount',
         ));
     }
 }
