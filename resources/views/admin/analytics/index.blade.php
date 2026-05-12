@@ -61,7 +61,6 @@
             flex-direction: column;
             gap: 32px;
             max-width: 100%;
-            padding: 32px;
         }
 
         .analytics-header {
@@ -424,7 +423,6 @@
         /* Responsive Design */
         @media (max-width: 768px) {
             .analytics-container {
-                padding: 20px;
                 gap: 24px;
             }
 
@@ -477,7 +475,6 @@
 
         @media (max-width: 480px) {
             .analytics-container {
-                padding: 16px;
                 gap: 20px;
             }
 
@@ -986,21 +983,23 @@
             const ctx = document.getElementById('sourceChart');
             if (sourceChart) sourceChart.destroy();
 
-            const webUsage = sourceData.web || 0;
+            const conversationUsage = sourceData.conversation || 0;
             const telegramUsage = sourceData.telegram || 0;
-            const total = webUsage + telegramUsage || 1;
+            const notesUsage = sourceData.notes || 0;
+            const total = conversationUsage + telegramUsage + notesUsage || 1;
 
             sourceChart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Web App', 'Telegram'],
+                    labels: ['Conversation', 'Telegram', 'Notes'],
                     datasets: [{
-                        data: [webUsage, telegramUsage],
+                        data: [conversationUsage, telegramUsage, notesUsage],
                         backgroundColor: [
                             chartColors.primary,
-                            'rgba(0, 136, 204, 0.8)'
+                            'rgba(0, 136, 204, 0.8)',
+                            chartColors.orange
                         ],
-                        borderColor: ['#fff', '#fff'],
+                        borderColor: ['#fff', '#fff', '#fff'],
                         borderWidth: 3,
                         hoverOffset: 6
                     }]
@@ -1013,8 +1012,9 @@
                         legend: { 
                             position: 'bottom',
                             labels: { 
-                                padding: 16,
-                                font: { family: 'system-ui, sans-serif', size: 13, weight: 600 },
+                                padding: 14,
+                                boxWidth: 8,
+                                font: { family: 'system-ui, sans-serif', size: 12, weight: 600 },
                                 color: '#64748b',
                                 usePointStyle: true,
                                 pointStyle: 'circle'

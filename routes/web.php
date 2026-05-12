@@ -38,6 +38,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('notes', NoteController::class);
     Route::post('notes/{note}/share', [NoteController::class, 'share'])->name('notes.share');
     Route::delete('notes/{note}/share', [NoteController::class, 'revokeShare'])->name('notes.revoke-share');
+    Route::get('notes/{note}/download', [NoteController::class, 'download'])->name('notes.download');
     Route::post('/notes/fix-grammar', [NoteController::class, 'fixGrammar'])->name('notes.fix-grammar');
 
     // ── Profile ──────────────────────────────────────────────────────

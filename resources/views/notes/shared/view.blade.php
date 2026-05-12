@@ -11,8 +11,6 @@
             </div>
         </header>
 
-        <div class="public-note-content">
-            {{ $note->content }}
-        </div>
+        <div class="public-note-content">{{ $note->content }}</div>
     </div>
 @endsection

@@ -267,11 +267,27 @@ a {
 }
 
 .landing-header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(19, 41, 72, 0.08);
+    box-shadow: 
+        0 12px 34px rgba(15, 23, 42, 0.06),
+        0 4px 12px rgba(15, 23, 42, 0.04);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.landing-header-inner {
+    width: min(1400px, calc(100% - 32px));
+    margin: 0 auto;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 18px;
-    margin-bottom: 44px;
+    padding: 16px 0;
 }
 
 .landing-brand {
@@ -881,7 +897,6 @@ a {
 
 
 .landing-feature-showcase {
-    margin-top: 60px;
     padding: 40px;
     background: #f8fafc;
     border-radius: 32px;
@@ -3413,16 +3428,8 @@ textarea.form-input {
         grid-template-columns: 1fr;
     }
 
-    .landing-header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
     .landing-actions {
-        display: none;
-        width: 100%;
-        justify-content: flex-start;
-        flex-wrap: wrap;
+        display: flex;
     }
 
     .landing-telegram-card {
@@ -3486,6 +3493,11 @@ textarea.form-input {
         width: min(100% - 20px, 1400px);
         padding-top: 18px;
         padding-bottom: 36px;
+    }
+
+    .landing-header-inner {
+        width: min(100% - 20px, 1400px);
+        padding: 12px 0;
     }
 
     .landing-hero,
@@ -3572,6 +3584,10 @@ textarea.form-input {
 
     .landing-stat-grid {
         grid-template-columns: 1fr;
+    }
+
+    .page-heading {
+        display: contents;
     }
 }
 

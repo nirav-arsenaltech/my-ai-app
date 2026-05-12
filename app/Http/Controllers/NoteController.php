@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\NoteRequest;
+use App\Models\AiUsage;
 use App\Models\Note;
 use App\Services\OpenAIService;
 use Illuminate\Http\Request;
@@ -113,10 +114,36 @@ class NoteController extends Controller
             'content' => 'required|string',
         ]);
 
-        $fixedText = $this->ai->fixGrammar($request->get('content'));
+        $startTime = microtime(true);
+        $result = $this->ai->fixGrammar($request->get('content'));
+        $latency = (int) ((microtime(true) - $startTime) * 1000);
+
+        defer(fn () => AiUsage::create([
+            'user_id' => $request->user()->id,
+            'provider' => $result['meta']['provider'] ?? 'google',
+            'model' => $result['meta']['model'] ?? config('services.gemini.chat_model', 'gemini-2.5-flash-lite'),
+            'type' => 'grammar_fix',
+            'prompt_tokens' => $result['usage']['prompt_tokens'] ?? 0,
+            'completion_tokens' => $result['usage']['completion_tokens'] ?? 0,
+            'total_tokens' => $result['usage']['total_tokens'] ?? (($result['usage']['prompt_tokens'] ?? 0) + ($result['usage']['completion_tokens'] ?? 0)),
+            'latency_ms' => $latency,
+            'metadata' => ['source' => 'notes'],
+        ]));
 
         return response()->json([
-            'content' => $fixedText,
+            'content' => $result['content'],
         ]);
+    }
+
+    public function download(Note $note)
+    {
+        $this->authorize('view', $note);
+
+        $filename = Str::slug($note->title ?: 'note').'-'.now()->format('YmdHis').'.txt';
+        $content = $note->content;
+
+        return response($content)
+            ->header('Content-Type', 'text/plain')
+            ->header('Content-Disposition', "attachment; filename=\"{$filename}\"");
     }
 }
