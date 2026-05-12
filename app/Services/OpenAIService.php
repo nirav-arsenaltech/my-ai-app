@@ -62,7 +62,7 @@ class OpenAIService
         ];
     }
 
-    public function fixGrammar(string $text): string
+    public function fixGrammar(string $text): array
     {
         $instructions = <<<'PROMPT'
             You are a professional editor.
@@ -79,7 +79,11 @@ class OpenAIService
             model: (string) config('services.gemini.chat_model', 'gemini-2.5-flash-lite'),
         );
 
-        return trim($response->text);
+        return [
+            'content' => trim($response->text),
+            'usage' => $response->usage->toArray(),
+            'meta' => $response->meta->toArray(),
+        ];
     }
 
     private function normalizeHistory(array $history): array

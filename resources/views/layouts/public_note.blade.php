@@ -28,7 +28,7 @@
                 backdrop-filter: blur(8px);
             }
             .public-note-header { margin-bottom: 40px; border-bottom: 1px solid #f1f5f9; padding-bottom: 30px; }
-            .public-note-title { font-family: 'Space Grotesk', sans-serif; font-size: 3rem; font-weight: 700; color: #0f172a; margin: 0 0 12px 0; letter-spacing: -0.04em; line-height: 1.1; }
+            .public-note-title { font-family: 'Space Grotesk', sans-serif; font-size: 2.5rem; font-weight: 700; color: #0f172a; margin: 0 0 12px 0; letter-spacing: -0.04em; line-height: 1.1; }
             .public-note-meta { color: #64748b; font-size: 0.95rem; font-weight: 500; }
             .public-note-content { font-size: 1.25rem; line-height: 1.8; color: #334155; white-space: pre-wrap; }
             .public-note-footer { margin-top: 60px; text-align: center; color: #94a3b8; font-size: 0.9rem; }

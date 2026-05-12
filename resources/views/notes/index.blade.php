@@ -65,6 +65,13 @@
                                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline mr-2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                                         Edit Note
                                     </a>
+
+                                    <button type="button" onclick="downloadNote('{{ $note->id }}', '{{ addslashes($note->title) }}', event)" class="download-btn">
+                                        <span class="icon-container mr-2">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                        </span>
+                                        Download (.txt)
+                                    </button>
                                     
                                     @if($note->share_token && !$note->isExpired())
                                         <button @click="shareMenu = !shareMenu">
@@ -282,6 +289,19 @@
         .note-dropdown-menu a:hover, .note-dropdown-menu button:hover {
             background: var(--page-bg);
         }
+        .icon-container {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 14px;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .animate-spin {
+            animation: spin 1s linear infinite;
+        }
         .share-item {
             padding: 6px 12px !important;
             font-size: 0.8rem !important;
@@ -388,6 +408,58 @@
                     console.error('Fallback copy failed', err);
                 }
                 document.body.removeChild(textArea);
+            }
+        }
+
+        async function downloadNote(id, title, event) {
+            const btn = event.currentTarget;
+            if (btn.disabled) return;
+
+            const iconContainer = btn.querySelector('.icon-container');
+            const originalIcon = iconContainer.innerHTML;
+            
+            // Disable button and show loader
+            btn.disabled = true;
+            btn.style.opacity = '0.7';
+            btn.style.cursor = 'not-allowed';
+            iconContainer.innerHTML = '<svg class="animate-spin inline" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56" /></svg>';
+
+            try {
+                const response = await fetch(`/notes/${id}/download`);
+                if (!response.ok) throw new Error('Download failed');
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.txt`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+
+                if (window.createToast) {
+                    window.createToast({
+                        type: 'success',
+                        title: 'Download Successful',
+                        message: `"${title}" has been downloaded.`
+                    });
+                }
+            } catch (error) {
+                console.error(error);
+                if (window.createToast) {
+                    window.createToast({
+                        type: 'error',
+                        title: 'Download Failed',
+                        message: 'An error occurred while downloading the note.'
+                    });
+                }
+            } finally {
+                // Restore button state
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+                iconContainer.innerHTML = originalIcon;
             }
         }
     </script>

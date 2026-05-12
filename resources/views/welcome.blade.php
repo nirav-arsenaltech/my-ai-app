@@ -12,8 +12,8 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="landing-body" id="top">
-    <div class="landing-shell">
-        <header class="landing-header">
+    <header class="landing-header">
+        <div class="landing-header-inner">
             <a href="{{ route('welcome') }}" class="landing-brand">
                 <span class="landing-brand-mark">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -32,8 +32,10 @@
                 <a href="{{ route('register') }}" class="landing-btn landing-btn-primary">Register</a>
                 @endif
             </nav>
-        </header>
+        </div>
+    </header>
 
+    <div class="landing-shell">
         <main class="landing-main">
             <section class="landing-hero">
                 <div class="landing-copy">
@@ -195,7 +197,7 @@
                 <div class="landing-section-head">
                     <span class="landing-kicker">New Feature</span>
                     <h2>Secure, Distraction-Free Notes.</h2>
-                    <p class="landing-lead text-center mx-auto" style="max-width: 700px;">
+                    <p class="landing-lead mx-auto" style="max-width: 750px;">
                         Beyond documents, capture your personal thoughts in a high-performance 
                         environment built for writers.
                     </p>

@@ -60,7 +60,7 @@ class AnalyticsController extends Controller
         $usages = $query->with('user:id,name')->orderBy('created_at', 'asc')->get();
 
         $chartData = [];
-        $sourceData = ['web' => 0, 'telegram' => 0];
+        $sourceData = ['conversation' => 0, 'telegram' => 0, 'notes' => 0];
         $userStats = [];
         $totalCost = 0;
 
@@ -86,8 +86,11 @@ class AnalyticsController extends Controller
             $chartData[$label]['completion_tokens'] += $usage->completion_tokens;
             $chartData[$label]['requests'] += 1;
 
-            // Source (Telegram vs Web)
-            $source = $usage->metadata['source'] ?? 'web';
+            // Source (Telegram vs Conversation vs Notes)
+            $source = $usage->metadata['source'] ?? 'conversation';
+            if ($source === 'web') {
+                $source = 'conversation';
+            }
             if (!isset($sourceData[$source])) {
                 $sourceData[$source] = 0;
             }

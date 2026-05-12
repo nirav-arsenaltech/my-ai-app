@@ -109,7 +109,7 @@ class RagService
         });
     }
 
-    public function answer(Conversation $conversation, string $question, string $source = 'web'): array
+    public function answer(Conversation $conversation, string $question, string $source = 'conversation'): array
     {
         $history = $conversation->messages()
             ->latest()
