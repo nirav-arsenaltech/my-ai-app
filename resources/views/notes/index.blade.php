@@ -25,8 +25,42 @@
 @endsection
 
 @section('content')
-    <div class="mt-6 flex justify-between items-center">
-        <h2 class="text-xl font-bold text-gray-800">Your Collection</h2>
+    <div class="admin-card">
+        <div class="card-header">
+            <div class="card-header-info">
+                <h2 class="card-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" height="17" width="17">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                    </svg>
+                    Filter Notes
+                </h2>
+                <span class="header-status">Search by note title</span>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <form method="GET" class="admin-filter-form">
+                <input type="hidden" name="per_page" value="{{ request('per_page', $notes->perPage()) }}">
+                <div class="form-group">
+                    <label class="form-label" for="search">Search</label>
+                    <input id="search" type="text" name="search" value="{{ request('search') }}" class="form-input" placeholder="Search notes by note title">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="status">Status</label>
+                    <select id="status" name="status" class="form-input">
+                        <option value="" @selected(request('status') === '')>All</option>
+                        <option value="shared" @selected(request('status') === 'shared')>Shared</option>
+                        <option value="private" @selected(request('status') === 'private')>Private</option>
+                    </select>
+                </div>
+
+                <div class="admin-filter-actions">
+                    <button type="submit" class="btn btn-primary">Apply Filters</button>
+                    <a href="{{ route('notes.index') }}" class="btn btn-ghost">Reset</a>
+                </div>
+            </form>
+        </div>
     </div>
 
     <div class="notes-grid">
@@ -42,12 +76,19 @@
                                 </span>
                                 @if($note->isExpired())
                                     <span class="status-badge status-danger">Expired</span>
+                                @else
+                                    <span class="status-badge status-active">Active</span>
                                 @endif
                                 @if($note->hasPassword())
                                     <span class="status-badge status-purple" title="Password Protected">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                                     </span>
                                 @endif
+                            @else
+                                <span class="status-badge status-info" title="Private">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" width="10" height="10" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 1 1 9 0v3.75M3.75 21.75h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H3.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
+                                        Private
+                                </span>
                             @endif
                         </div>
                         <div class="flex items-center gap-1">
@@ -108,10 +149,10 @@
                         </div>
                     </div>
                     
-                    <a href="{{ route('notes.show', $note) }}" class="note-card-body">
-                        <h3 class="note-title">{{ $note->title }}</h3>
-                        <p class="note-snippet">{{ Str::limit($note->content, 120) }}</p>
-                    </a>
+                    <div class="note-card-body">
+                        <a href="{{ route('notes.show', $note) }}" class="note-title">{{ $note->title }}</a>
+                        <p class="note-snippet mt-3" title="{{ $note->content }}">{{ Str::limit($note->content, 120) }}</p>
+                    </div>
                     
                     <div class="note-card-footer">
                         <span class="note-date">
@@ -347,6 +388,8 @@
         .status-success { background: #dcfce7; color: #166534; }
         .status-danger { background: #fee2e2; color: #991b1b; }
         .status-purple { background: #f3e8ff; color: #6b21a8; }
+        .status-info { background: #dcf4fc; color: #0f5a80; }
+        .status-active { background: #e0f2fe; color: #0284c7; }
     </style>
 
     <script>

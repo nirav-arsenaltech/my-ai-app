@@ -13,9 +13,22 @@ class NoteController extends Controller
 {
     public function __construct(protected OpenAIService $ai) {}
 
-    public function index()
+    public function index(Request $request)
     {
-        $notes = auth()->user()->notes()->latest()->paginate(10);
+        $query = $request->user()->notes();
+
+        if ($request->filled('search')) {
+            $query->where('title', 'like', '%'.$request->search.'%');
+        }
+        if ($request->filled('status')) {
+            if ($request->get('status') === 'private') {
+                $query->whereNull('share_token');
+            } elseif ($request->get('status') === 'shared') {
+                $query->whereNotNull('share_token');
+            }
+        }
+
+        $notes = $query->latest()->paginate(10);
 
         return view('notes.index', compact('notes'));
     }

@@ -15,6 +15,7 @@ return [
 
     'name' => env('APP_NAME', 'Laravel'),
 
+    'sub_title' => env('APP_SUB_TITLE', 'Private knowledge workspace'),
     /*
     |--------------------------------------------------------------------------
     | Application Environment

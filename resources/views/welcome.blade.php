@@ -22,16 +22,22 @@
                 </span>
                 <span class="landing-brand-copy">
                     <strong>{{ config('app.name', 'My AI App') }}</strong>
-                    <span>Private knowledge workspace</span>
+                    <span>{{ config('app.sub_title','Private knowledge workspace') }}</span>
                 </span>
             </a>
 
+            @if (!Auth::user())
             <nav class="landing-actions">
                 <a href="{{ route('login') }}" class="landing-btn landing-btn-ghost">Login</a>
                 @if (Route::has('register'))
                 <a href="{{ route('register') }}" class="landing-btn landing-btn-primary">Register</a>
                 @endif
             </nav>
+            @else
+            <nav class="landing-actions">
+                <a href="{{ route('dashboard') }}" class="landing-btn landing-btn-primary">Dashboard</a>
+            </nav>
+            @endif
         </div>
     </header>
 
@@ -47,12 +53,23 @@
                         private space for your thoughts with advanced sharing capabilities.
                     </p>
 
+                    @if(!Auth::user())
                     <div class="landing-cta-row">
                         @if (Route::has('register'))
                         <a href="{{ route('register') }}" class="landing-btn landing-btn-primary landing-btn-lg">Start Free</a>
                         @endif
                         <a href="{{ route('login') }}" class="landing-btn landing-btn-outline landing-btn-lg">Sign In</a>
                     </div>
+                    @else
+                        <div class="landing-cta-row">
+                            <a href="{{ route('dashboard') }}" class="landing-btn landing-btn-primary">
+                                <span class="mr-1">Dashboard</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" height="16" width="16">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                                </svg>
+                            </a>
+                        </div>
+                    @endif
 
                     <ul class="landing-trust-list">
                         <li>Private user-scoped document retrieval</li>
@@ -327,6 +344,7 @@
                 </div>
             </section>
 
+            @if(!Auth::user())
             <section class="landing-bottom-cta">
                 <div class="landing-bottom-cta-copy">
                     <span class="landing-kicker">Ready To Use It?</span>
@@ -360,6 +378,7 @@
                     @endif
                 </div>
             </section>
+            @endif
         </main>
     </div>
     @include('layouts.partials.toasts')
@@ -388,6 +407,10 @@
 
         <div class="landing-footer-meta">
             <p>&copy; {{ date('Y') }} {{ config('app.name', 'My AI App') }}. All rights reserved.</p>
+            <div style="display: flex; gap: 16px;">
+                <a href="{{ url('/p/privacy-policy') }}" style="color: #60748f; text-decoration: none; font-size: 13px;">Privacy Policy</a>
+                <a href="{{ url('/p/terms-of-service') }}" style="color: #60748f; text-decoration: none; font-size: 13px;">Terms of Service</a>
+            </div>
             <p>Created by <a href="https://github.com/nirav-gajera" target="_blank" rel="noreferrer">nirav-gajera</a></p>
         </div>
     </footer>
@@ -422,10 +445,13 @@
                 anchor.addEventListener('click', function(e) {
                     e.preventDefault();
                     const targetId = this.getAttribute('href');
+                    if (targetId === '#') return;
                     const targetElement = document.querySelector(targetId);
 
                     if (targetElement) {
-                        const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset;
+                        const header = document.querySelector('.landing-header');
+                        const headerHeight = header ? header.offsetHeight : 80;
+                        const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset - headerHeight - 20;
                         const startPosition = window.pageYOffset;
                         const distance = targetPosition - startPosition;
                         const duration = 1000; // Increased duration for a slower, smoother feel
@@ -438,7 +464,7 @@
                             const progress = timestamp - start;
                             
                             // Cubic Bezier-like Easing (OutCubic)
-                            const t = progress / duration;
+                            const t = Math.min(progress / duration, 1);
                             const easing = 1 - Math.pow(1 - t, 3);
                             
                             window.scrollTo(0, startPosition + distance * easing);
