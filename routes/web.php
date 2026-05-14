@@ -1,17 +1,18 @@
 <?php
 
-use App\Http\Controllers\AnalyticsController;
+use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KnowledgeDocumentController;
 use App\Http\Controllers\MessageController;
+use App\Http\Controllers\Admin\PageController;
 use App\Http\Controllers\NoteController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SharedNoteController;
-use App\Http\Controllers\TelegramBotController;
+use App\Http\Controllers\Admin\TelegramBotController;
 use App\Http\Controllers\TelegramController;
-use App\Http\Controllers\UsersController;
+use App\Http\Controllers\Admin\UsersController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -19,9 +20,12 @@ use Illuminate\Support\Facades\Route;
 Route::get('s/{token}', [SharedNoteController::class, 'show'])->name('notes.shared.show');
 Route::post('s/{token}/verify', [SharedNoteController::class, 'verifyPassword'])->name('notes.shared.verify');
 
+// Public pages by slug
+Route::get('p/{slug}', [PageController::class, 'showPublic'])->name('pages.show');
+
 Route::get('/', function () {
     if (Auth::check()) {
-        return redirect()->route('dashboard');
+        // return redirect()->route('dashboard');
     }
 
     return view('welcome');
@@ -78,6 +82,8 @@ Route::middleware('verified')->group(function () {
             // ── Analytics API (JSON) ──────────────────────────────────────────
             Route::get('analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
             Route::get('analytics/data', [AnalyticsController::class, 'data'])->name('analytics.data');
+            // pages
+            Route::resource('pages', PageController::class)->except('show');
         });
 });
 

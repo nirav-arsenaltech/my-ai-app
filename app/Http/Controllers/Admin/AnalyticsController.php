@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
 use App\Models\AiUsage;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -91,14 +92,14 @@ class AnalyticsController extends Controller
             if ($source === 'web') {
                 $source = 'conversation';
             }
-            if (!isset($sourceData[$source])) {
+            if (! isset($sourceData[$source])) {
                 $sourceData[$source] = 0;
             }
             $sourceData[$source] += $usage->total_tokens;
 
             // Top Users
             if ($usage->user_id) {
-                if (!isset($userStats[$usage->user_id])) {
+                if (! isset($userStats[$usage->user_id])) {
                     $userStats[$usage->user_id] = [
                         'name' => $usage->user ? $usage->user->name : 'User #'.$usage->user_id,
                         'tokens' => 0,
@@ -111,7 +112,7 @@ class AnalyticsController extends Controller
         // Sort Top 5 Users
         $stats['cost_estimate'] = round($totalCost, 4);
 
-        usort($userStats, fn($a, $b) => $b['tokens'] <=> $a['tokens']);
+        usort($userStats, fn ($a, $b) => $b['tokens'] <=> $a['tokens']);
         $topUsers = array_slice($userStats, 0, 5);
 
         return response()->json([
